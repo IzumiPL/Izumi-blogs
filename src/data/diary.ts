@@ -1,6 +1,5 @@
 // 日记数据配置
 // 用于管理日记页面的数据
-
 export interface DiaryItem {
 	id: number;
 	content: string;
@@ -16,21 +15,33 @@ export interface DiaryItem {
 const diaryData: DiaryItem[] = [
     {
         id: 0,
-        content: "Phigros!",
-        date: "2025-10-02T03:02:00Z",
-        images: getDirItemsByNumber( "/images/diary/Phingros/Demo/", "jpg", 2),
+        content: "第一次用公子的百万核爆!",
+        date: "2023-11-08T00:00:00Z",
+        images: getDirItemsByNumber("/images/diary/GenShin", "jpg", 1)
     },
     {
         id: 1,
-        content: "Call Of Duty Control Settings",
-        date: "2024-11-20T14:45:00Z",
-        images: getDirItemsByNumber("/images/diary/Call of Duty Settings/Control/", "png", 9),
+        content: "Phigros第一次AP",
+        date: "2024-03-17T00:00:00Z",
+        images: getDirItemsByNumber( "/images/diary/Phingros/AP_1/", "jpg", 1),
+    },
+    {
+        id: 2,
+        content: "又取得了两个AP🥰",
+        date: "2024-05-12T00:00:00Z",
+        images: getDirItemsByNumber("/images/diary/Phingros/AP_2/", "jpg", 2),
+    },
+    {
+        id: 3,
+        content: "肝了3天终于解锁了战役的所有迷彩",
+        date: "2024-12-10T00:00:00Z",
+        images: getDirItemsByNumber("/images/diary/Call of Duty/Camouflage/", "png", 4),
     },
 ];
 
 function getDirItemsByNumber(dir: string, suffix: string, count: number) {
     let items = [];
-    for (let i = 1; i <= count; i++) {
+    for (let i = 0; i < count; i++) {
         items.push(`${dir}/${i}.${suffix}`);
     }
     return items

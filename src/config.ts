@@ -43,15 +43,12 @@ const imagePath = {
 }
 
 export const siteConfig: SiteConfig = {
-	title: "Mikuas-Blogs",
+	title: "Hiyouin-Blogs",
 	subtitle: "welcome To My Personal Blog Site",
-	siteURL: "https://www.mikuas.top/", // 请替换为你的站点URL，以斜杠结尾
-	siteStartDate: "2025-01-01", // 站点开始运行日期，用于站点统计组件计算运行天数
-
+	siteURL: "https://mikuas.top/", // 请替换为你的站点URL，以斜杠结尾
+	siteStartDate: "2020-01-01", // 站点开始运行日期，用于站点统计组件计算运行天数
 	timeZone: SITE_TIMEZONE,
-
 	lang: SITE_LANG,
-
 	themeColor: {
 		hue: 345, // 主题色的默认色相，范围从 0 到 360。例如：红色：0，青色：200，蓝绿色：250，粉色：345
 		fixed: false, // 对访问者隐藏主题色选择器
@@ -64,15 +61,13 @@ export const siteConfig: SiteConfig = {
 		friends: true, // 友链页面开关
 		projects: true, // 项目页面开关
 		skills: true, // 技能页面开关
-		timeline: true, // 时间线页面开关
 		albums: true, // 相册页面开关
-		devices: true, // 设备页面开关
 	},
 
 	// 顶栏标题配置
 	navbarTitle: {
 		// 顶栏标题文本
-		text: "Mikuas-Blogs",
+		text: "Hiyouin-Blogs",
 		// 顶栏标题图标路径，默认使用 public/assets/home/home.png
 		icon: "assets/home/home.png",
 	},
@@ -230,8 +225,8 @@ export const navBarConfig: NavBarConfig = {
 
 export const profileConfig: ProfileConfig = {
     avatar: "assets/images/avatar.png", // 相对于 /src 目录。如果以 '/' 开头，则相对于 /public 目录
-    name: "Mikuas",
-    bio: "I am the storm that is approaching",
+    name: "Hiyouin",
+    bio: "和泉妃爱世界第一可爱🥰",
     links: [
         {
             name: "BiliBili",
@@ -305,7 +300,7 @@ export const footerConfig: FooterConfig = {
  */
 export const sidebarLayoutConfig: SidebarLayoutConfig = {
 	// 侧边栏位置：单侧(unilateral)或双侧(both)
-	position: "unilateral",
+	position: "both",
 
 	// 侧边栏组件配置列表
 	components: [

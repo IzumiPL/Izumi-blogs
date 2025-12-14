@@ -56,6 +56,7 @@
                 display: none;
             }
         }
+        user-select: text !important;
     }
 
     .copy-btn {
@@ -106,7 +107,7 @@
     .expressive-code {
         @apply my-4;
         ::selection {
-            @apply bg-[var(--codeblock-selection)];
+            @apply bg-[var(--codeblock-selection)] text-[white];
         }
     }
 
