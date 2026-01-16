@@ -43,7 +43,7 @@ const imagePath = {
 }
 
 export const siteConfig: SiteConfig = {
-	title: "Hiyouin-Blogs",
+	title: "Hiyorin-Blogs",
 	subtitle: "welcome To My Personal Blog Site",
 	siteURL: "https://mikuas.top/", // 请替换为你的站点URL，以斜杠结尾
 	siteStartDate: "2020-01-01", // 站点开始运行日期，用于站点统计组件计算运行天数
@@ -67,7 +67,7 @@ export const siteConfig: SiteConfig = {
 	// 顶栏标题配置
 	navbarTitle: {
 		// 顶栏标题文本
-		text: "Hiyouin-Blogs",
+		text: "Hiyorin-Blogs",
 		// 顶栏标题图标路径，默认使用 public/assets/home/home.png
 		icon: "assets/home/home.png",
 	},
