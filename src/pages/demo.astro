@@ -9,7 +9,7 @@ import MainGridLayout from "../layouts/MainGridLayout.astro";
 const aboutPost = await getEntry("spec", "demo");
 
 if (!aboutPost) {
-	throw new Error("Demo page content not found");
+    throw new Error("Demo page content not found");
 }
 
 const { Content } = await render(aboutPost);

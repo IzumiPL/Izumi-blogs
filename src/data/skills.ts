@@ -19,17 +19,17 @@ export interface Skill {
 
 export const skillsData: Skill[] = [
 	// Frontend Skills
-	{
-		id: "python",
-		name: "Python",
-		description: "使用Python进行桌面应用开发",
-		icon: "logos:python",
-		category: "other",
-		level: "intermediate",
-		experience: { years: 1, months: 1 },
-		projects: ["PySide6-Fluent-UI"],
-		color: "#3776AB",
-	},
+    {
+        id: "python",
+        name: "Python",
+        description: "使用Python进行桌面应用开发",
+        icon: "logos:python",
+        category: "other",
+        level: "intermediate",
+        experience: { years: 1, months: 1 },
+        projects: ["PySide6-Fluent-UI"],
+        color: "#3776AB",
+    },
 	// {
 	// 	id: "javascript",
 	// 	name: "JavaScript",
@@ -100,7 +100,7 @@ export const skillsData: Skill[] = [
 	// 	level: "intermediate",
 	// 	experience: { years: 1, months: 4 },
 	// 	projects: ["e-commerce-frontend", "blog-platform"],
-	// 	color: "#000000",
+	// 	color: "#616161", // 更改为深灰色，避免纯黑色
 	// },
 	// {
 	// 	id: "nuxtjs",
@@ -173,7 +173,7 @@ export const skillsData: Skill[] = [
 	// 	projects: ["vue-project", "react-project"],
 	// 	color: "#646CFF",
 	// },
-
+    //
 	// // Backend Skills
 	// {
 	// 	id: "nodejs",
@@ -327,7 +327,7 @@ export const skillsData: Skill[] = [
 	// 	level: "intermediate",
 	// 	experience: { years: 1, months: 8 },
 	// 	projects: ["data-visualization-tool"],
-	// 	color: "#000000",
+	// 	color: "#616161", // 更改为深灰色，避免纯黑色
 	// },
 	// {
 	// 	id: "spring",
@@ -353,7 +353,7 @@ export const skillsData: Skill[] = [
 	// 	projects: ["blog-backend"],
 	// 	color: "#092E20",
 	// },
-
+    //
 	// // Database Skills
 	// {
 	// 	id: "mysql",
@@ -426,7 +426,7 @@ export const skillsData: Skill[] = [
 	// 	projects: ["task-manager-app"],
 	// 	color: "#FFCA28",
 	// },
-
+    //
 	// // Tools
 	// {
 	// 	id: "git",
@@ -472,7 +472,7 @@ export const skillsData: Skill[] = [
 	// 	level: "intermediate",
 	// 	experience: { years: 1, months: 8 },
 	// 	projects: ["java-enterprise", "spring-boot-app"],
-	// 	color: "#000000",
+	// 	color: "#616161", // 更改为深灰色，避免纯黑色
 	// },
 	// {
 	// 	id: "pycharm",
@@ -496,7 +496,7 @@ export const skillsData: Skill[] = [
 	// 	level: "beginner",
 	// 	experience: { years: 0, months: 8 },
 	// 	projects: ["dotnet-api", "desktop-app"],
-	// 	color: "#000000",
+	// 	color: "#616161", // 更改为深灰色，避免纯黑色
 	// },
 	// {
 	// 	id: "goland",
@@ -638,7 +638,7 @@ export const skillsData: Skill[] = [
 	// 	projects: ["ui-design", "image-processing"],
 	// 	color: "#31A8FF",
 	// },
-
+    //
 	// // Other Skills
 	// {
 	// 	id: "graphql",

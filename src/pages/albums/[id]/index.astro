@@ -5,6 +5,12 @@ import I18nKey from "../../../i18n/i18nKey";
 import { i18n } from "../../../i18n/translation";
 import MainGridLayout from "../../../layouts/MainGridLayout.astro";
 import { scanAlbums } from "../../../utils/album-scanner";
+import { siteConfig } from "../../../config";
+
+// 检查相册页面是否启用
+if (!siteConfig.featurePages.albums) {
+	return Astro.redirect("/404/");
+}
 
 export const getStaticPaths = async () => {
 	const albumsData = await scanAlbums();
@@ -21,7 +27,7 @@ interface Props {
 const { album } = Astro.props;
 
 if (!album) {
-	return Astro.redirect("/404");
+	return Astro.redirect("/404/");
 }
 ---
 
@@ -89,10 +95,10 @@ if (!album) {
         {album.photos.map((photo, index) => (
           <figure class="photo-item group relative overflow-hidden rounded-lg">
             <a 
-              href={photo.src}
-              data-pswp-width={photo.width || 1200}
-              data-pswp-height={photo.height || 800}
-              target="_blank"
+              href="javascript:void(0)"
+              data-src={photo.src}
+              data-fancybox="gallery"
+              data-caption={photo.title || photo.alt}
               class="block"
             >
               <img 
@@ -111,7 +117,7 @@ if (!album) {
 </MainGridLayout>
 
 <script>
-  // 确保PhotoSwipe正确处理相册图片
+  // 确保Fancybox正确处理相册图片
   document.addEventListener('DOMContentLoaded', () => {
     console.log('=== 相册页面加载完成 ===');
     
@@ -124,17 +130,6 @@ if (!album) {
       if (img instanceof HTMLImageElement) {
         const preloadImg = new Image();
         preloadImg.src = img.src;
-      }
-    });
-    
-    // 修复相册图片链接，确保它们可以被PhotoSwipe正确处理
-    document.querySelectorAll('.photo-gallery a').forEach(link => {
-      if (link instanceof HTMLAnchorElement) {
-        // 阻止默认的新窗口打开行为
-        link.addEventListener('click', (e) => {
-          e.preventDefault();
-          // 不需要额外操作，PhotoSwipe会处理点击事件
-        });
       }
     });
   });

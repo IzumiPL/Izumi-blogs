@@ -6,10 +6,15 @@ import "@fontsource/roboto/700.css";
 import ConfigCarrier from "@components/ConfigCarrier.astro";
 import MusicPlayer from "@components/widget/MusicPlayer.svelte";
 import Pio from "@components/widget/Pio.svelte"; // 使用 Svelte 版本的 Pio 组件
-import { profileConfig, siteConfig } from "@/config";
-import { widgetConfigs } from "../config";
 import {
-	AUTO_MODE,
+	musicPlayerConfig,
+	pioConfig,
+	profileConfig,
+	siteConfig,
+} from "@/config";
+import { widgetConfigs } from "../config";
+import { umamiConfig } from "../config.ts";
+import {
 	BANNER_HEIGHT,
 	BANNER_HEIGHT_EXTEND,
 	BANNER_HEIGHT_HOME,
@@ -22,11 +27,12 @@ import { defaultFavicons } from "../constants/icon";
 import type { Favicon, SakuraConfig } from "../types/config";
 import { pathsEqual, url } from "../utils/url-utils";
 
-import { umamiConfig } from '../config.ts';
-
 import "katex/dist/katex.css";
 import "../styles/mobile-navbar.css";
 import "../styles/wallpaper-navbar-transparent.css";
+import "../styles/fancybox-custom.css";
+import "../styles/expressive-code.css";
+import "../styles/panel-animations.css";
 
 interface Props {
 	title?: string;
@@ -127,6 +133,45 @@ const bannerOffset =
 
 const umamiEnabled = umamiConfig.enabled || false;
 const umamiScripts = umamiConfig.scripts || ""; // 获取Umami scripts配置
+
+// 构建字体配置的 CSS 变量
+// ASCII 字体优先级最高（用于英文、数字等），CJK 字体作为回退
+let bodyFontFamily = "";
+if (siteConfig.font) {
+	const fonts: string[] = [];
+
+	// 先添加 ASCII 字体（优先级最高）
+	if (siteConfig.font.asciiFont?.fontFamily) {
+		const asciiFont = siteConfig.font.asciiFont.fontFamily;
+		// 如果字体名包含空格，需要用引号包围
+		fonts.push(asciiFont.includes(" ") ? `"${asciiFont}"` : asciiFont);
+	}
+
+	// 再添加 CJK 字体（作为回退）
+	if (siteConfig.font.cjkFont?.fontFamily) {
+		const cjkFont = siteConfig.font.cjkFont.fontFamily;
+		// 如果字体名包含空格，需要用引号包围
+		fonts.push(cjkFont.includes(" ") ? `"${cjkFont}"` : cjkFont);
+	}
+
+	// 添加系统字体作为最终回退
+	fonts.push(
+		"system-ui",
+		"-apple-system",
+		"BlinkMacSystemFont",
+		"'Segoe UI'",
+		"Roboto",
+		"Oxygen",
+		"Ubuntu",
+		"Cantarell",
+		"'Open Sans'",
+		"'Helvetica Neue'",
+		"sans-serif",
+	);
+
+	// 组合成完整的 font-family 字符串
+	bodyFontFamily = fonts.join(", ");
+}
 ---
 
 <!DOCTYPE html>
@@ -134,6 +179,24 @@ const umamiScripts = umamiConfig.scripts || ""; // 获取Umami scripts配置
 	  data-overlayscrollbars-initialize
 >
 	<head>
+		<!-- 第三方分析脚本 - 延迟加载优化 -->
+		<script is:inline>
+			// 使用 requestIdleCallback 延迟加载第三方脚本
+			function loadAnalytics() {
+				// Google Tag Manager
+				(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);})(window,document,'script','dataLayer','GTM-KRX3XGVH');
+				
+				// Clarity
+				(function(c,l,a,r,i,t,y){c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);})(window, document, "clarity", "script", "tjr3vkhj8i");
+			}
+			
+			// 在浏览器空闲时加载，或者在 3 秒后加载
+			if ('requestIdleCallback' in window) {
+				requestIdleCallback(loadAnalytics, { timeout: 3000 });
+			} else {
+				setTimeout(loadAnalytics, 3000);
+			}
+		</script>
 
 		<title>{pageTitle}</title>
 
@@ -173,22 +236,28 @@ const umamiScripts = umamiConfig.scripts || ""; // 获取Umami scripts配置
 		))}
 
 		<!-- Set the theme before the page is rendered to avoid a flash -->
-		<script is:inline define:vars={{DEFAULT_THEME, LIGHT_MODE, DARK_MODE, AUTO_MODE, BANNER_HEIGHT_EXTEND, PAGE_WIDTH, configHue}}>
+		<script is:inline define:vars={{DEFAULT_THEME, LIGHT_MODE, DARK_MODE, BANNER_HEIGHT_EXTEND, PAGE_WIDTH, configHue}}>
 			// Load the theme from local storage
 			const theme = localStorage.getItem('theme') || DEFAULT_THEME;
+			let isDark = false;
 			switch (theme) {
 				case LIGHT_MODE:
 					document.documentElement.classList.remove('dark');
+					isDark = false;
 					break
 				case DARK_MODE:
 					document.documentElement.classList.add('dark');
+					isDark = true;
 					break
-				case AUTO_MODE:
-					if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-						document.documentElement.classList.add('dark');
-					} else {
-						document.documentElement.classList.remove('dark');
-					}
+			}
+			
+			// Set the theme for Expressive Code based on current mode
+			const expressiveTheme = isDark ? "github-dark" : "github-light";
+			const currentTheme = document.documentElement.getAttribute("data-theme");
+			
+			// 只在主题不同时才更新，避免触发不必要的重绘
+			if (currentTheme !== expressiveTheme) {
+				document.documentElement.setAttribute("data-theme", expressiveTheme);
 			}
 
 			// Load the hue from local storage
@@ -209,8 +278,8 @@ const umamiScripts = umamiConfig.scripts || ""; // 获取Umami scripts配置
 
 		<slot name="head"></slot>
 
-		<!-- Pio 看板娘样式 -->
-		<link rel="stylesheet" href="/pio/static/pio.css" />
+		<!-- Pio 看板娘样式 - 仅在启用时加载 -->
+		{pioConfig.enable && <link rel="stylesheet" href="/pio/static/pio.css" />}
 
 		<link rel="alternate" type="application/rss+xml" title={profileConfig.name} href={`${Astro.site}rss.xml`}/>
 
@@ -218,383 +287,25 @@ const umamiScripts = umamiConfig.scripts || ""; // 获取Umami scripts配置
 		{umamiEnabled && umamiScripts && <Fragment set:html={umamiScripts} />}
 
 </head>
-	<body class=" min-h-screen " class:list={[{"lg:is-home": isHomePage, "enable-banner": enableBanner, "zen-maru-gothic-enabled": siteConfig.font.zenMaruGothic.enable, "hanalei-enabled": siteConfig.font.hanalei.enable}]}
+	<body class=" min-h-screen " class:list={[{"lg:is-home": isHomePage, "enable-banner": enableBanner}]}
+		  style={bodyFontFamily ? `font-family: ${bodyFontFamily};` : ''}
 		  data-overlayscrollbars-initialize
 	>
+		<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-KRX3XGVH" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+		
 		<!-- 页面顶部渐变高光效果 - 只在full和semifull模式下显示 -->
 		{shouldShowTopHighlight && <div class="top-gradient-highlight"></div>}
 		<ConfigCarrier></ConfigCarrier>
 		<slot />
 		
-		<!-- Music Player -->
-		<MusicPlayer client:load />
+		<!-- Music Player - 仅在启用时加载 -->
+		{musicPlayerConfig.enable && <MusicPlayer client:load />}
 		
-		<!-- Pio 看板娘组件 -->
-		<!-- 注意：Pio 组件需要放在 body 标签内，但要在其他内容之前 -->
-		<!-- 如果启用了侧边栏，可能需要调整 z-index -->
-		<Pio client:load />
+		<!-- Pio 看板娘组件 - 仅在启用时加载 -->
+		{pioConfig.enable && <Pio client:load />}
 		
 		<!-- increase the page height during page transition to prevent the scrolling animation from jumping -->
 		<div id="page-height-extend" class="hidden h-[300vh]"></div>
-
-		<!-- Sakura Effect -->
-		{(widgetConfigs.sakura as SakuraConfig)?.enable && (
-			<script define:vars={{ sakuraConfig: widgetConfigs.sakura }}>
-				// 樱花对象类
-				class Sakura {
-					constructor(x, y, s, r, fn, idx, img, limitArray, config) {
-						this.x = x;
-						this.y = y;
-						this.s = s;
-						this.r = r;
-						this.fn = fn;
-						this.idx = idx;
-						this.img = img;
-						this.limitArray = limitArray;
-						this.config = config;
-					}
-
-					draw(cxt) {
-						cxt.save();
-						cxt.translate(this.x, this.y);
-						cxt.rotate(this.r);
-						cxt.drawImage(this.img, 0, 0, 40 * this.s, 40 * this.s);
-						cxt.restore();
-					}
-
-					update() {
-						this.x = this.fn.x(this.x, this.y);
-						this.y = this.fn.y(this.y, this.y);
-						this.r = this.fn.r(this.r);
-
-						// 如果樱花越界，重新调整位置
-						if (
-							this.x > window.innerWidth ||
-							this.x < 0 ||
-							this.y > window.innerHeight ||
-							this.y < 0
-						) {
-							// 如果樱花不做限制
-							if (this.limitArray[this.idx] === -1) {
-								this.resetPosition();
-							}
-							// 否则樱花有限制
-							else {
-								if (this.limitArray[this.idx] > 0) {
-									this.resetPosition();
-									this.limitArray[this.idx]--;
-								}
-							}
-						}
-					}
-
-					resetPosition() {
-						this.r = getRandom('fnr', this.config);
-						if (Math.random() > 0.4) {
-							this.x = getRandom('x', this.config);
-							this.y = 0;
-							this.s = getRandom('s', this.config);
-							this.r = getRandom('r', this.config);
-						} else {
-							this.x = window.innerWidth;
-							this.y = getRandom('y', this.config);
-							this.s = getRandom('s', this.config);
-							this.r = getRandom('r', this.config);
-						}
-					}
-				}
-
-				// 樱花列表类
-				class SakuraList {
-					constructor() {
-						this.list = [];
-					}
-
-					push(sakura) {
-						this.list.push(sakura);
-					}
-
-					update() {
-						for (let i = 0, len = this.list.length; i < len; i++) {
-							this.list[i].update();
-						}
-					}
-
-					draw(cxt) {
-						for (let i = 0, len = this.list.length; i < len; i++) {
-							this.list[i].draw(cxt);
-						}
-					}
-
-					get(i) {
-						return this.list[i];
-					}
-
-					size() {
-						return this.list.length;
-					}
-				}
-
-				// 获取随机值的函数
-				function getRandom(option, config) {
-					let ret;
-					let random;
-
-					switch (option) {
-						case 'x':
-							ret = Math.random() * window.innerWidth;
-							break;
-						case 'y':
-							ret = Math.random() * window.innerHeight;
-							break;
-						case 's':
-							ret = config.size.min + Math.random() * (config.size.max - config.size.min);
-							break;
-						case 'r':
-							ret = Math.random() * 6;
-							break;
-						case 'fnx':
-							random = config.speed.horizontal.min + Math.random() * (config.speed.horizontal.max - config.speed.horizontal.min);
-							ret = function (x, y) {
-								return x + random;
-							};
-							break;
-						case 'fny':
-							random = config.speed.vertical.min + Math.random() * (config.speed.vertical.max - config.speed.vertical.min);
-							ret = function (x, y) {
-								return y + random;
-							};
-							break;
-						case 'fnr':
-							ret = function (r) {
-								return r + config.speed.rotation;
-							};
-							break;
-					}
-					return ret;
-				}
-
-				// 樱花管理器类
-				class SakuraManager {
-					constructor(config) {
-						this.config = config;
-						this.canvas = null;
-						this.ctx = null;
-						this.sakuraList = null;
-						this.animationId = null;
-						this.img = null;
-						this.isRunning = false;
-					}
-
-					// 初始化樱花特效
-					async init() {
-						if (!this.config.enable || this.isRunning) {
-							return;
-						}
-
-						// 创建图片对象
-						this.img = new Image();
-						this.img.src = '/sakura.png'; // 使用樱花图片
-
-						// 等待图片加载完成
-						await new Promise((resolve, reject) => {
-							if (this.img) {
-								this.img.onload = () => resolve();
-								this.img.onerror = () => reject(new Error('Failed to load sakura image'));
-							}
-						});
-
-						this.createCanvas();
-						this.createSakuraList();
-						this.startAnimation();
-						this.isRunning = true;
-					}
-
-					// 创建画布
-					createCanvas() {
-						this.canvas = document.createElement('canvas');
-						this.canvas.height = window.innerHeight;
-						this.canvas.width = window.innerWidth;
-						this.canvas.setAttribute('style', `position: fixed; left: 0; top: 0; pointer-events: none; z-index: ${this.config.zIndex};`);
-						this.canvas.setAttribute('id', 'canvas_sakura');
-						document.body.appendChild(this.canvas);
-						this.ctx = this.canvas.getContext('2d');
-
-						// 监听窗口大小变化
-						window.addEventListener('resize', this.handleResize.bind(this));
-					}
-
-					// 创建樱花列表
-					createSakuraList() {
-						if (!this.img || !this.ctx) return;
-
-						this.sakuraList = new SakuraList();
-						const limitArray = new Array(this.config.sakuraNum).fill(this.config.limitTimes);
-
-						for (let i = 0; i < this.config.sakuraNum; i++) {
-							const randomX = getRandom('x', this.config);
-							const randomY = getRandom('y', this.config);
-							const randomR = getRandom('r', this.config);
-							const randomS = getRandom('s', this.config);
-							const randomFnx = getRandom('fnx', this.config);
-							const randomFny = getRandom('fny', this.config);
-							const randomFnR = getRandom('fnr', this.config);
-
-							const sakura = new Sakura(
-								randomX,
-								randomY,
-								randomS,
-								randomR,
-								{
-									x: randomFnx,
-									y: randomFny,
-									r: randomFnR,
-								},
-								i,
-								this.img,
-								limitArray,
-								this.config
-							);
-
-							sakura.draw(this.ctx);
-							this.sakuraList.push(sakura);
-						}
-					}
-
-					// 开始动画
-					startAnimation() {
-						if (!this.ctx || !this.canvas || !this.sakuraList) return;
-
-						const animate = () => {
-							if (!this.ctx || !this.canvas || !this.sakuraList) return;
-
-							this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-							this.sakuraList.update();
-							this.sakuraList.draw(this.ctx);
-							this.animationId = requestAnimationFrame(animate);
-						};
-
-						this.animationId = requestAnimationFrame(animate);
-					}
-
-					// 处理窗口大小变化
-					handleResize() {
-						if (this.canvas) {
-							this.canvas.width = window.innerWidth;
-							this.canvas.height = window.innerHeight;
-						}
-					}
-
-					// 停止樱花特效
-					stop() {
-						if (this.animationId) {
-							cancelAnimationFrame(this.animationId);
-							this.animationId = null;
-						}
-
-						if (this.canvas) {
-							document.body.removeChild(this.canvas);
-							this.canvas = null;
-						}
-
-						window.removeEventListener('resize', this.handleResize.bind(this));
-						this.isRunning = false;
-					}
-
-					// 切换樱花特效
-					toggle() {
-						if (this.isRunning) {
-							this.stop();
-						} else {
-							this.init();
-						}
-					}
-
-					// 更新配置
-					updateConfig(newConfig) {
-						const wasRunning = this.isRunning;
-						if (wasRunning) {
-							this.stop();
-						}
-						this.config = newConfig;
-						if (wasRunning && newConfig.enable) {
-							this.init();
-						}
-					}
-
-					// 获取运行状态
-					getIsRunning() {
-						return this.isRunning;
-					}
-				}
-
-				// 创建全局樱花管理器实例
-				let globalSakuraManager = null;
-
-				// 初始化樱花特效
-				function initSakura(config) {
-					if (globalSakuraManager) {
-						globalSakuraManager.updateConfig(config);
-					} else {
-						globalSakuraManager = new SakuraManager(config);
-						if (config.enable) {
-							globalSakuraManager.init();
-						}
-					}
-				}
-
-				// 樱花特效初始化
-				(function() {
-					// 全局标记，确保樱花特效只初始化一次
-					if (window.sakuraInitialized) {
-						return;
-					}
-					
-					// 初始化樱花特效的函数
-					const setupSakura = () => {
-						if (sakuraConfig.enable && !window.sakuraInitialized) {
-							initSakura(sakuraConfig);
-							window.sakuraInitialized = true;
-						}
-					};
-					
-					// 页面加载完成后初始化樱花特效
-					if (document.readyState === 'loading') {
-						document.addEventListener('DOMContentLoaded', setupSakura);
-					} else {
-						setupSakura();
-					}
-				})();
-			</script>
-		)}
-		
-		<!-- Translate.js integration - lazy loading -->
-		<!--{siteConfig.translate?.enable && (-->
-		<!--	<script>-->
-		<!--		// 懒加载translate.js，只有在需要时才加载-->
-		<!--		window.loadTranslateScript = function() {-->
-		<!--			if (window.translate || document.getElementById('translate-script')) {-->
-		<!--				return Promise.resolve();-->
-		<!--			}-->
-		<!--			-->
-		<!--			return new Promise((resolve, reject) => {-->
-		<!--				const script = document.createElement('script');-->
-		<!--				script.src = '/translate.js';-->
-		<!--				script.id = 'translate-script';-->
-		<!--				script.async = true;-->
-		<!--				script.onload = () => {-->
-		<!--					if (typeof window.translate !== 'undefined') {-->
-		<!--						resolve();-->
-		<!--					} else {-->
-		<!--						reject(new Error('translate.js loaded but window.translate not available'));-->
-		<!--					}-->
-		<!--				};-->
-		<!--				script.onerror = reject;-->
-		<!--				document.head.appendChild(script);-->
-		<!--			});-->
-		<!--		};-->
-		<!--	</script>-->
-		<!--)}-->
 	</body>
 </html>
 
@@ -662,9 +373,13 @@ import {
 	BANNER_HEIGHT,
 	BANNER_HEIGHT_HOME,
 	BANNER_HEIGHT_EXTEND,
-	MAIN_PANEL_OVERLAPS_BANNER_HEIGHT
+	MAIN_PANEL_OVERLAPS_BANNER_HEIGHT,
+	DARK_MODE,
+	DEFAULT_THEME
 } from "../constants/constants";
 import { siteConfig } from '../config';
+import { widgetConfigs } from "../config";
+import { initSakura } from "../utils/sakura-manager";
 
 /* Preload fonts */
 // (async function() {
@@ -712,23 +427,39 @@ function disableAnimation() {
 
 const bannerEnabled = !!document.getElementById('banner-wrapper')
 
-function setClickOutsideToClose(panel: string, ignores: string[]) {
-	document.addEventListener("click", event => {
-		let panelDom = document.getElementById(panel);
-		let tDom = event.target;
-		if (!(tDom instanceof Node)) return;		// Ensure the event target is an HTML Node
-		for (let ig of ignores) {
-			let ie = document.getElementById(ig)
-			if (ie == tDom || (ie?.contains(tDom))) {
-				return;
-			}
+// 导入面板管理器
+async function initializePanelManager() {
+	try {
+		const { panelManager } = await import('../utils/panel-manager.js');
+		
+		function setClickOutsideToClose(panel: string, ignores: string[]) {
+			document.addEventListener("click", async event => {
+				let panelDom = document.getElementById(panel);
+				let tDom = event.target;
+				if (!(tDom instanceof Node)) return;		// Ensure the event target is an HTML Node
+				for (let ig of ignores) {
+					let ie = document.getElementById(ig)
+					if (ie == tDom || (ie?.contains(tDom))) {
+						return;
+					}
+				}
+				await panelManager.closePanel(panel as any);
+			});
 		}
-		panelDom!.classList.add("float-panel-closed");
-	});
+		setClickOutsideToClose("display-setting", ["display-setting", "display-settings-switch"])
+		setClickOutsideToClose("nav-menu-panel", ["nav-menu-panel", "nav-menu-switch"])
+		setClickOutsideToClose("search-panel", ["search-panel", "search-bar", "search-switch"])
+		setClickOutsideToClose("mobile-toc-panel", ["mobile-toc-panel", "mobile-toc-switch"])
+		setClickOutsideToClose("wallpaper-mode-panel", ["wallpaper-mode-panel", "wallpaper-mode-switch"])
+		
+		return panelManager;
+	} catch (error) {
+		console.error('Failed to initialize panel manager:', error);
+		return null;
+	}
 }
-setClickOutsideToClose("display-setting", ["display-setting", "display-settings-switch"])
-setClickOutsideToClose("nav-menu-panel", ["nav-menu-panel", "nav-menu-switch"])
-setClickOutsideToClose("search-panel", ["search-panel", "search-bar", "search-switch"])
+
+initializePanelManager();
 
 
 function loadTheme() {
@@ -786,8 +517,6 @@ function initCustomScrollbar() {
 }
 
 function showBanner() {
-	if (!siteConfig.banner.enable) return;
-
 	// 使用requestAnimationFrame优化DOM操作
 	requestAnimationFrame(() => {
 		// Handle single image banner (desktop)
@@ -970,67 +699,19 @@ function initCarousel() {
 	}
 }
 
-// function initTranslate() {
-// 	if (!siteConfig.translate?.enable || typeof window.translate === 'undefined') return;
-//
-// 	// 配置translate.js
-// 	if (siteConfig.translate.service && window.translate) {
-// 		window.translate.service.use(siteConfig.translate.service);
-// 	}
-//
-// 	if (siteConfig.translate.defaultLanguage && window.translate) {
-// 		window.translate.language.setLocal(siteConfig.translate.defaultLanguage);
-// 	}
-//
-// 	if (siteConfig.translate.autoDiscriminate && window.translate) {
-// 		window.translate.setAutoDiscriminateLocalLanguage();
-// 	}
-//
-// 	// 设置忽略的类名和标签
-// 	if (siteConfig.translate.ignoreClasses && window.translate) {
-// 		siteConfig.translate.ignoreClasses.forEach(className => {
-// 			window.translate.ignore.class.push(className);
-// 		});
-// 	}
-//
-// 	if (siteConfig.translate.ignoreTags && window.translate) {
-// 		siteConfig.translate.ignoreTags.forEach(tagName => {
-// 			window.translate.ignore.tag.push(tagName);
-// 		});
-// 	}
-//
-// 	// 不显示默认的select选择框
-// 	if (siteConfig.translate.showSelectTag === false && window.translate) {
-// 		window.translate.selectLanguageTag.show = false;
-// 	}
-//
-// 	// 禁用自动保存翻译状态到localStorage
-// 	if (window.translate) {
-// 		window.translate.storage.set = function() {
-// 			// 空函数，阻止保存状态
-// 		};
-//
-// 		// 启动翻译监听
-// 		window.translate.listener.start();
-//
-// 		// 执行翻译初始化
-// 		window.translate.execute();
-// 	}
-// }
-//
-// // 懒加载并初始化翻译功能
-// async function loadAndInitTranslate() {
-// 	if (!siteConfig.translate?.enable) return;
-//
-// 	try {
-// 		await window.loadTranslateScript();
-// 		initTranslate();
-// 	} catch (error) {
-// 		console.error('Failed to load translate.js:', error);
-// 	}
-// }
+function setupSakura() {
+	const sakuraConfig = (widgetConfigs as any)?.sakura;
+	if (!sakuraConfig || !sakuraConfig.enable) return;
+	if ((window as any).sakuraInitialized) return;
+	initSakura(sakuraConfig);
+	(window as any).sakuraInitialized = true;
+}
 
-
+if (document.readyState === 'loading') {
+	document.addEventListener('DOMContentLoaded', setupSakura);
+} else {
+	setupSakura();
+}
 
 const setup = () => {
 	// TODO: temp solution to change the height of the banner
@@ -1085,12 +766,7 @@ const setup = () => {
 			}
 		}
 		
-		// 页面内容替换后重新执行翻译（仅在翻译已加载时）
-		// setTimeout(() => {
-		// 	if (siteConfig.translate?.enable && typeof (window as any).translate !== 'undefined') {
-		// 		(window as any).translate.execute();
-		// 	}
-		// }, 100);
+		
 		
 		// 重新初始化semifull模式的滚动检测
 		const navbar = document.getElementById('navbar')
@@ -1188,6 +864,32 @@ const setup = () => {
 			top: 0,
 			behavior: 'instant'
 		});
+		
+		// 同步主题状态 - 解决从首页进入文章页面时代码块渲染问题
+		const storedTheme = localStorage.getItem('theme') || DEFAULT_THEME;
+		const isDark = storedTheme === DARK_MODE;
+		const expectedTheme = isDark ? 'github-dark' : 'github-light';
+		const currentTheme = document.documentElement.getAttribute('data-theme');
+		const hasDarkClass = document.documentElement.classList.contains('dark');
+		
+		// 如果主题不匹配，使用批量更新减少重绘
+		if (currentTheme !== expectedTheme || hasDarkClass !== isDark) {
+			// 使用 requestAnimationFrame 批量更新，减少重绘
+			requestAnimationFrame(() => {
+				// 同步 data-theme 属性
+				if (currentTheme !== expectedTheme) {
+					document.documentElement.setAttribute('data-theme', expectedTheme);
+				}
+				// 同步 dark class
+				if (hasDarkClass !== isDark) {
+					if (isDark) {
+						document.documentElement.classList.add('dark');
+					} else {
+						document.documentElement.classList.remove('dark');
+					}
+				}
+			});
+		}
 		
 		// 检查当前页面是否为文章页面，如果是则触发自定义事件用于初始化评论系统
 		setTimeout(() => {
@@ -1291,74 +993,161 @@ window.onresize = () => {
 
 // 页面加载完成后初始化banner和轮播图
 if (document.readyState === 'loading') {
-	document.addEventListener('DOMContentLoaded', () => {
+	document.addEventListener('DOMContentLoaded', async () => {
 		showBanner();
+		// 初始化面板管理器
+		try {
+			const { panelManager } = await import('../utils/panel-manager.js');
+			console.log('Panel manager initialized');
+		} catch (error) {
+			console.error('Failed to initialize panel manager:', error);
+		}
 	});
 } else {
 	showBanner();
+	// 页面已经加载完成，立即初始化面板管理器
+	(async () => {
+		try {
+			const { panelManager } = await import('../utils/panel-manager.js');
+			console.log('Panel manager initialized');
+		} catch (error) {
+			console.error('Failed to initialize panel manager:', error);
+		}
+	})();
 }
 
 </script>
 
+<!-- 代码块折叠功能 -->
 <script>
-import PhotoSwipeLightbox from "photoswipe/lightbox"
-import "photoswipe/style.css"
+import '../scripts/code-collapse.js';
+</script>
 
-let lightbox: PhotoSwipeLightbox
+<!-- 主题切换综合性能优化器（包含代码块优化、重型元素优化、性能诊断） -->
+<script>
+import '../scripts/theme-optimizer.js';
+</script>
 
-function createPhotoSwipe() {
-	lightbox = new PhotoSwipeLightbox({
-		gallery: ".custom-md img, #post-cover img, .moment-images img",
-		pswpModule: () => import("photoswipe"),
-        closeSVG: '<svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#ffffff"><path d="m256-200-56-56 224-224-224-224 56-56 224 224 224-224 56 56-224 224 224 224-56 56-224-224-224 224Z"/></svg>',
-        zoomSVG: '<svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#ffffff"><path d="M784-120 532-372q-30 24-69 38t-83 14q-109 0-184.5-75.5T120-580q0-109 75.5-184.5T380-840q109 0 184.5 75.5T640-580q0 44-14 83t-38 69l252 252-56 56ZM380-400q75 0 127.5-52.5T560-580q0-75-52.5-127.5T380-760q-75 0-127.5 52.5T200-580q0 75 52.5 127.5T380-400Zm-40-60v-80h-80v-80h80v-80h80v80h80v80h-80v80h-80Z"/></svg>',
-		padding: { top: 20, bottom: 20, left: 20, right: 20 },
-		wheelToZoom: true,
-		arrowPrev: false,
-		arrowNext: false,
-		imageClickAction: 'close',
-		tapAction: 'close',
-		doubleTapAction: 'zoom',
-	})
+<script>
+import { Fancybox } from "@fancyapps/ui";
+import "@fancyapps/ui/dist/fancybox/fancybox.css";
 
-	// Add filter BEFORE lightbox is initialized
-	lightbox.addFilter("domItemData", (itemData, element) => {
-		if (element instanceof HTMLImageElement) {
-			itemData.src = element.src
+// 使用单例模式避免重复初始化
+let fancyboxInstances = [];
 
-			itemData.w = Number(element.naturalWidth || window.innerWidth)
-			itemData.h = Number(element.naturalHeight || window.innerHeight)
+function initFancybox() {
+  // 不需要关闭所有实例，只需检查是否已经初始化
+  if (fancyboxInstances.length > 0) {
+    return; // 已经初始化，直接返回
+  }
+  
+  // 通用配置
+  const commonConfig = {
+    Thumbs: {
+      autoStart: true,
+      showOnStart: "yes",
+    },
+    Toolbar: {
+      display: {
+        left: ["infobar"],
+        middle: [
+          "zoomIn",
+          "zoomOut",
+          "toggle1to1",
+          "rotateCCW",
+          "rotateCW",
+          "flipX",
+          "flipY",
+        ],
+        right: ["slideshow", "thumbs", "close"],
+      },
+    },
+    animated: true,
+    dragToClose: true,
+    keyboard: {
+      Escape: "close",
+      Delete: "close",
+      Backspace: "close",
+      PageUp: "next",
+      PageDown: "prev",
+      ArrowUp: "next",
+      ArrowDown: "prev",
+      ArrowRight: "next",
+      ArrowLeft: "prev",
+    },
+    fitToView: true,
+    preload: 3,
+    infinite: true,
+    Panzoom: {
+      maxScale: 3,
+      minScale: 1,
+    },
+    caption: false
+  };
+  
+  // 为相册图片添加 Fancybox 支持
+  fancyboxInstances.push(
+    Fancybox.bind(".custom-md img, #post-cover img, .moment-images img", {
+      ...commonConfig,
+      groupAll: true,
+      Carousel: {
+        transition: "slide",
+        preload: 2,
+      },
+    })
+  );
+  
+  // 为相册中的链接添加 Fancybox 支持
+  fancyboxInstances.push(
+    Fancybox.bind(".moment-images a[data-fancybox]", {
+      ...commonConfig,
+      source: (el) => {
+        return el.getAttribute("data-src") || el.getAttribute("href");
+      },
+    })
+  );
+  
+  // 为单独的 fancybox 图片添加支持
+  fancyboxInstances.push(
+    Fancybox.bind("[data-fancybox]:not(.moment-images a)", commonConfig)
+  );
+}
 
-			itemData.msrc = element.src
-		}
-
-		return itemData
-	})
-
-	// Initialize lightbox AFTER adding filters
-	lightbox.init()
+// 清理 Fancybox 实例
+function cleanupFancybox() {
+  fancyboxInstances.forEach(instance => {
+    if (instance && typeof instance.destroy === 'function') {
+      instance.destroy();
+    }
+  });
+  fancyboxInstances = [];
 }
 
 const setup = () => {
-	if (!lightbox) {
-		createPhotoSwipe()
-	}
-	window.swup.hooks.on("page:view", () => {
-		createPhotoSwipe()
-	})
-
-	window.swup.hooks.on(
-		"content:replace",
-		() => {
-			lightbox?.destroy?.()
-		},
-		{ before: true },
-	)
+  // 初始化 Fancybox
+  initFancybox();
+  
+  // 在页面视图更改时重新初始化
+  window.swup.hooks.on("page:view", () => {
+    // 清理旧实例
+    cleanupFancybox();
+    // 等待 DOM 更新后初始化
+    requestAnimationFrame(() => {
+      initFancybox();
+    });
+  });
 }
 
 if (window.swup) {
-	setup()
+  setup()
 } else {
-	document.addEventListener("swup:enable", setup)
+  document.addEventListener("swup:enable", setup)
+  
+  // 如果 swup 尚未初始化，则直接初始化
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initFancybox);
+  } else {
+    initFancybox();
+  }
 }
 </script>

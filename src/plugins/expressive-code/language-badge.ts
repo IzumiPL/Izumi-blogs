@@ -26,6 +26,7 @@ export function pluginLanguageBadge() {
         transition: opacity 0.3s;
         opacity: 0;
       }
+      
       .frame:not(.has-title):not(.is-terminal) {
         @media (hover: none) {
           & [data-language]::before {

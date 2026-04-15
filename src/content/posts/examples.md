@@ -5,7 +5,7 @@ description: 'demo'
 image: 'guide/examples.webp'
 category: 'Other'
 tags: ["Other"]
-draft: false 
+draft: true 
 lang: ''
 pinned: true
 author: Mikuas
