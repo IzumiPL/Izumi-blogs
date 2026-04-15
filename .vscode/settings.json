@@ -18,5 +18,7 @@
     "quickfix.biome": "always",
     "source.organizeImports.biome": "always"
   },
+  "editor.cursorStyle": "line",
+  "liveServer.settings.root": "/dist",
   "frontMatter.dashboard.openOnStart": false
 }
