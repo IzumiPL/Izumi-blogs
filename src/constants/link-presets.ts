@@ -71,6 +71,7 @@ export const LinkPresets: { [key in LinkPreset]: NavBarLink } = {
         name: "其他",
         url: "#",
         icon: "material-symbols:more-horiz",
-        children: [LinkPreset.Projects, LinkPreset.Skills, LinkPreset.Timeline],
+        // children: [LinkPreset.Projects, LinkPreset.Skills, LinkPreset.Timeline],
+        children: [LinkPreset.Projects, LinkPreset.Skills],
     },
 };

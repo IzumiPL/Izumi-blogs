@@ -33,7 +33,7 @@ const diaryData: DiaryItem[] = [
     },
     {
         id: 3,
-        content: "肝了3天终于解锁了战役的所有迷彩",
+        content: "肝了3天终于解锁了战役的所有迷彩,好看捏🥵",
         date: "2024-12-10T00:00:00Z",
         images: getDirItemsByNumber("/images/diary/Call of Duty/Camouflage/", "png", 4),
     },
